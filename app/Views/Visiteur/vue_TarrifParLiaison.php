@@ -20,14 +20,16 @@ foreach ($tarifParLiaison as $ligne)
         $date[$sumDate] = $ligne->datedebut." / ".$ligne->datefin;
     }
 
-    if (!($ligne->lettre === $enrLettre))
+    if (!isset($type[$ligne->lettre."".$ligne->type]))
     {
-        $sumLettre += 1;
-        $enrLettre = $ligne->lettre;
-        $lettre[$sumLettre] = $ligne->lettre." / ".$ligne->lettreLibelle;
+        if ($ligne->lettre != $enrLettre) 
+        {
+            $sumLettre += 1;
+            $enrLettre = $ligne->lettre;
+            $lettre[$sumLettre] = $ligne->lettre." / ".$ligne->lettreLibelle;
+        }
         $type[$ligne->lettre."".$ligne->type] = $ligne->lettre."".$ligne->type." - ".$ligne->typeLibelle;
-    } else {
-        $type[$ligne->lettre."".$ligne->type] = $ligne->lettre."".$ligne->type." - ".$ligne->typeLibelle;
+        $tarif[$ligne->lettre."".$ligne->type] = $ligne->tarif;
     }
 }
 echo $sumLettre;
