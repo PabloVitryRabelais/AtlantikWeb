@@ -19,6 +19,5 @@ foreach ($liaisonsParSecteur as $ligne)
     }
 }
 
-$table->setFooting('Colors');
 echo $table->generate();
 ?>

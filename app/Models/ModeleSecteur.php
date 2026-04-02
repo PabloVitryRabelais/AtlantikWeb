@@ -8,7 +8,7 @@ class ModeleSecteur extends Model
     protected $primaryKey = 'nosecteur';
     protected $useAutoIncrement = true;
     protected $returnType = 'object'; 
-    protected $allowedFields = ['nom','distance'];
+    protected $allowedFields = ['nom'];
     public function getAllLiaisonSecteur()
     { 
         return $this->join('liaison li', 'sec.nosecteur = li.nosecteur', 'inner')

@@ -78,10 +78,31 @@ class Visiteur extends BaseController
         {
             $modSecteur = new ModeleSecteur();
             $data['tarifParLiaison'] = $modSecteur->getAllTarifLiaison($noLiaison);
-            $data['TitrePage'] = "Affichage des Tarifs par Liaisons";
+            $data['TitrePage'] = "Affichage des Tarifs pour Liaison n°".$noLiaison;
             return view('Templates/Header')
             .view('Visiteur/vue_TarrifParLiaison', $data)
             .view('Templates/Footer'); 
+        }
+    }
+
+    public function VisualiserTraversees($noSecteur = null)
+    {
+        if ($noSecteur === null) {
+            $modSecteur = new ModeleSecteur();
+            $data["LesSecteurs"] = $modSecteur->findAll();
+            $data["TitrePage"] = "Affichage des traversées par secteurs";
+            return view('Templates/Header')
+                .view('Visiteur/vue_VisuTraversees', $data)
+                .view('Templates/Footer'); 
+        } else
+        {
+            $modSecteur = new ModeleSecteur();
+            $data["LesSecteurs"] = $modSecteur->findAll();
+            $data["TitrePage"] = "Affichage des traversées par secteurs";
+            $data["Periode"]
+            return view('Templates/Header')
+                .view('Visiteur/vue_VisuTraversees', $data)
+                .view('Templates/Footer'); 
         }
     }
 }

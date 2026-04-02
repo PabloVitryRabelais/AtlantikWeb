@@ -10,12 +10,15 @@ $enrDate = null;
 $sumLettre = 0;
 $enrLettre = null;
 
+$sumType = 0;
+$enrType = null;
+
 foreach ($tarifParLiaison as $ligne)
 {
-    $sumLigne += 1;
+    $sumLigne++;
     if (!($ligne->datedebut === $enrDate))
     {
-        $sumDate += 1;
+        $sumDate++;
         $enrDate = $ligne->datedebut;
         $date[$sumDate] = $ligne->datedebut." / ".$ligne->datefin;
     }
@@ -24,18 +27,34 @@ foreach ($tarifParLiaison as $ligne)
     {
         if ($ligne->lettre != $enrLettre) 
         {
-            $sumLettre += 1;
+            $sumLettre++;
             $enrLettre = $ligne->lettre;
-            $lettre[$sumLettre] = $ligne->lettre." / ".$ligne->lettreLibelle;
+
+            $lettre[$sumLettre] = $ligne->lettre;
+            $lettreLibelle[$sumLettre] = $ligne->lettreLibelle;
+
+            $type[$enrLettre."1"] = 1;
+            $typeLibelle[$enrLettre."1"] = $ligne->typeLibelle;
+            $countType[$sumLettre] = 1;
+        } else {
+            $type[$enrLettre."".$ligne->type] = $ligne->type;
+            $typeLibelle[$enrLettre."".$ligne->type] = $ligne->typeLibelle;
+            $countType[$sumLettre] += 1;
         }
-        $type[$ligne->lettre."".$ligne->type] = $ligne->lettre."".$ligne->type." - ".$ligne->typeLibelle;
-        $tarif[$ligne->lettre."".$ligne->type] = $ligne->tarif;
+
+        $sumPeriode = 1;
+        $tarif[$ligne->lettre."-".$ligne->type."-".$sumPeriode] = $ligne->tarif;
+    } else {
+        if (isset($tarif[$ligne->lettre."-".$ligne->type."-".$sumPeriode])) {
+            $sumPeriode += 1;
+        }
+        $tarif[$ligne->lettre."-".$ligne->type."-".$sumPeriode] = $ligne->tarif;
     }
 }
-echo $sumLettre;
+
 
 echo '
-<table class="table table-striped">
+<table class="table table-bordered table-hover">
     <tr>
         <th rowspan="2">Catégorie(s)</th>
         <th rowspan="2">Type(s)</th>
@@ -51,9 +70,17 @@ echo '</tr>';
 
 for ($i=1; $i<=$sumLettre; $i++)
 {
-    echo '<tr>
-    <th rowspan="'.$sumLettre.'">'.$lettre[$i].'</th>';
-
+    echo '<tr class>
+    <th rowspan="'.($countType[$i] + 1).'">'.$lettre[$i].' - '.$lettreLibelle[$i].'</th>';
+    for ($j=1; $j<=$countType[$i]; $j++)
+    {
+        echo '<tr><td>'.$lettre[$i].''.$type[$lettre[$i]."".$j].' - '.$typeLibelle[$lettre[$i]."".$j].'</td>';
+        for ($k=1; $k<=$sumDate; $k++)
+        {
+            echo '<td>'.$tarif[$lettre[$i]."-".$type[$lettre[$i]."".$j]."-".$k].'</td>';
+        }
+        echo '</tr>';
+    }
     echo '</tr>';
 }
 

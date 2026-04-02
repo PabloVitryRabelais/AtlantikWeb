@@ -13,3 +13,6 @@ $routes->match(['get', 'post'],'creercompte', 'Visiteur::creerCompte');
 
 $routes->match(['get', 'post'],'liaisonsparsecteur', 'Visiteur::LiaisonSecteur');
 $routes->match(['get', 'post'],'liaisonsparsecteur/(:num)', 'Visiteur::LiaisonSecteur/$1');
+
+$routes->match(['get', 'post'],'visutraversees', 'Visiteur::VisualiserTraversees');
+$routes->match(['get', 'post'],'visutraversees/(:num)', 'Visiteur::VisualiserTraversees/$1');
