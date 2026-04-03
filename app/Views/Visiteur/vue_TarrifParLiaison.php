@@ -84,7 +84,6 @@ for ($i=1; $i<=$sumLettre; $i++)
     echo '</tr>';
 }
 
-
 echo '</table>';
 
 ?>

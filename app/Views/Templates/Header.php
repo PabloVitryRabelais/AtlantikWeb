@@ -22,6 +22,10 @@
                 <li class="nav-item">
                     <a class= "btn btn-dark" href="<?php echo site_url('liaisonsparsecteur') ?>">liaisons/seteur</a>
                 </li>
+                &nbsp;&nbsp;
+                <li class="nav-item">
+                    <a class= "btn btn-dark" href="<?php echo site_url('visutraversees') ?>">Traversées</a>
+                </li>
             </ul>
         </div>
     </nav>

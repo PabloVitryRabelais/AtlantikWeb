@@ -2,6 +2,7 @@
 namespace App\Controllers;
 use App\Models\ModeleClient;
 use App\Models\ModeleSecteur;
+use App\Models\ModelePeriode;
 helper(['assets']);
 
 class Visiteur extends BaseController
@@ -87,19 +88,27 @@ class Visiteur extends BaseController
 
     public function VisualiserTraversees($noSecteur = null)
     {
-        if ($noSecteur === null) {
-            $modSecteur = new ModeleSecteur();
-            $data["LesSecteurs"] = $modSecteur->findAll();
-            $data["TitrePage"] = "Affichage des traversées par secteurs";
-            return view('Templates/Header')
-                .view('Visiteur/vue_VisuTraversees', $data)
-                .view('Templates/Footer'); 
-        } else
+        $modSecteur = new ModeleSecteur();
+        $modPeriode = new ModelePeriode();
+        $data["TitrePage"] = "Affichage des traversées par secteurs";
+        $data["LesPeriode"] = $modPeriode->where(['datedebut >' => date('Y-m-d')])->findAll();
+        $data["LesSecteurs"] = $modSecteur->findAll();
+        helper(['form']);
+        if (!isset($_POST['btnAfficher']))
         {
-            $modSecteur = new ModeleSecteur();
-            $data["LesSecteurs"] = $modSecteur->findAll();
-            $data["TitrePage"] = "Affichage des traversées par secteurs";
-            $data["Periode"]
+            if ($noSecteur === null) {
+                return view('Templates/Header')
+                    .view('Visiteur/vue_VisuTraversees', $data)
+                    .view('Templates/Footer'); 
+            } else
+            {
+                $data["LesLiaisons"] = $modSecteur->getAllLiaisonsParSecteur($noSecteur);
+                return view('Templates/Header')
+                    .view('Visiteur/vue_VisuTraversees', $data)
+                    .view('Templates/Footer'); 
+            }
+        } else {
+            
             return view('Templates/Header')
                 .view('Visiteur/vue_VisuTraversees', $data)
                 .view('Templates/Footer'); 
