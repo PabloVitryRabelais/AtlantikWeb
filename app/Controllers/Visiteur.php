@@ -3,6 +3,9 @@ namespace App\Controllers;
 use App\Models\ModeleClient;
 use App\Models\ModeleSecteur;
 use App\Models\ModelePeriode;
+use App\Models\ModeleTraversee;
+use App\Models\ModeleLiaison;
+use App\Models\ModeleAdministrateur;
 helper(['assets']);
 
 class Visiteur extends BaseController
@@ -37,6 +40,7 @@ class Visiteur extends BaseController
             'txtTelMobile' => 'permit_empty|regex_match[^0[67]\.\d{2}(\.\d{2}){3}$]',
             'txtMel' => 'required|max_length[254]|valid_email',
             'txtMDP' => 'required|string|max_length[30]',
+            'txtConfMDP' => 'required|string|matches[txtMDP]',
         ];
 
         if (!$this->validate($reglesValidation)) {
@@ -65,6 +69,71 @@ class Visiteur extends BaseController
             .view('Templates/Footer');
     }
 
+    public function seConnecter()
+    {
+        helper(['form']);
+        $session = session();
+
+        $data['TitrePage'] = 'Se connecter';
+        if (!$this->request->is('post')) {
+            return view('Templates/Header', $data) 
+            . view('Visiteur/vue_SeConnecter')
+            . view('Templates/Footer');
+
+        }
+        $reglesValidation = [ 
+            'txtID' => 'required',
+            'txtMDP' => 'required',
+        ];
+
+        if (!$this->validate($reglesValidation)) {
+            $data['TitreDeLaPage'] = "Saisie incorrecte";
+            return view('Templates/Header', $data)
+            . view('Visiteur/vue_SeConnecter') 
+            . view('Templates/Footer');
+        }
+
+        $Identifiant = $this->request->getPost('txtID');
+        $MdP = $this->request->getPost('txtMDP');
+        $modClient = new ModeleClient(); 
+        $condition = ['mel'=>$Identifiant,'motdepasse'=>$MdP];
+        $utilisateurRetourne = $modClient->where($condition)->first();
+
+        if ($utilisateurRetourne != null) {
+            $session->set('identifiant', $utilisateurRetourne->MEL);
+            $session->set('profil', 'client');
+            $data['TitrePage'] = 'Acceuil';
+            echo view('Templates/Header')
+            . view('Visiteur/vue_Acceuil', $data)
+            . view('Templates/Footer');
+        } else {
+            $modAdmin = new ModeleAdministrateur(); 
+            $condition = ['identifiant'=>$Identifiant,'motdepasse'=>$MdP];
+            $utilisateurRetourne = $modAdmin->where($condition)->first();
+            if ($utilisateurRetourne != null) 
+            {
+                $session->set('identifiant', $utilisateurRetourne->IDENTIFIANT);
+                $session->set('profil', 'Admin');
+                $data['TitrePage'] = 'Acceuil';
+                echo view('Templates/Header')
+                . view('Visiteur/vue_Acceuil', $data)
+                . view('Templates/Footer');
+            } else 
+            {
+                $data['TitreDeLaPage'] = "Identifiant ou/et Mot de passe inconnu(s)";
+                return view('Templates/Header')
+                . view('Visiteur/vue_SeConnecter', $data)
+                . view('Templates/Footer');
+            }
+        }
+    }
+
+    public function seDeconnecter()
+    {
+        session()->destroy();
+        return redirect()->to('Atlantik');
+    }
+
     public function LiaisonSecteur($noLiaison = null)
     {
         if ($noLiaison === null)
@@ -88,10 +157,11 @@ class Visiteur extends BaseController
 
     public function VisualiserTraversees($noSecteur = null)
     {
+        $modTraversee = new ModeleTraversee();
         $modSecteur = new ModeleSecteur();
         $modPeriode = new ModelePeriode();
         $data["TitrePage"] = "Affichage des traversées par secteurs";
-        $data["LesPeriode"] = $modPeriode->where(['datedebut >' => date('Y-m-d')])->findAll();
+        $data["LesDates"] = $modTraversee->where('dateheuredepart >', date('Y-m-d-h'))->findAll();
         $data["LesSecteurs"] = $modSecteur->findAll();
         helper(['form']);
         if (!isset($_POST['btnAfficher']))
@@ -108,10 +178,22 @@ class Visiteur extends BaseController
                     .view('Templates/Footer'); 
             }
         } else {
-            
-            return view('Templates/Header')
-                .view('Visiteur/vue_VisuTraversees', $data)
-                .view('Templates/Footer'); 
+            $modLiaison = new ModeleLiaison();
+            $data['TitrePorts'] = $modLiaison->getPortsLiaison($this->request->getPost('cmbLiaisons'));
+            $data['TitrePeriode'] = $this->request->getPost('cmbPeriode');
+            $data['LesTraversees'] = $modTraversee->getAllTraverseeLiaisons($this->request->getPost('cmbLiaisons'), $this->request->getPost('cmbPeriode'));
+            $data['PlacesReservees'] = $modTraversee->getAllPlacesReservee($this->request->getPost('cmbLiaisons'), $this->request->getPost('cmbPeriode'));
+            if ($noSecteur === null) {
+                return view('Templates/Header')
+                    .view('Visiteur/vue_VisuTraversees', $data)
+                    .view('Templates/Footer'); 
+            } else
+            {
+                $data["LesLiaisons"] = $modSecteur->getAllLiaisonsParSecteur($noSecteur);
+                return view('Templates/Header')
+                    .view('Visiteur/vue_VisuTraversees', $data)
+                    .view('Templates/Footer'); 
+            }
         }
     }
 }

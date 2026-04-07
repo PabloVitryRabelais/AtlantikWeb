@@ -33,7 +33,6 @@ class ModeleSecteur extends Model
 
     public function getAllTarifLiaison($noliaison)
     {
-        $date = date('Y-m-d');
         $condition = ['periode.datedebut >' => date('Y-m-d'), 'li.noliaison =' => $noliaison];
 
         return $this->join('liaison li', 'sec.nosecteur = li.nosecteur', 'inner')

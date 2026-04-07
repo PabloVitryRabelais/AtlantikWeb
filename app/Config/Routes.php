@@ -10,6 +10,8 @@ $routes->get('/', 'Home::index');
 $routes->get('Atlantik', 'Visiteur::acceuil');
 
 $routes->match(['get', 'post'],'creercompte', 'Visiteur::creerCompte');
+$routes->match(['get', 'post'],'seconnecter', 'Visiteur::seConnecter');
+$routes->match(['get', 'post'],'sedeconnecter', 'Visiteur::seDeconnecter');
 
 $routes->match(['get', 'post'],'liaisonsparsecteur', 'Visiteur::LiaisonSecteur');
 $routes->match(['get', 'post'],'liaisonsparsecteur/(:num)', 'Visiteur::LiaisonSecteur/$1');
