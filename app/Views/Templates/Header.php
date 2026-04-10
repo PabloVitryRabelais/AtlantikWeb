@@ -10,14 +10,7 @@
 </head>
 <body>
     <div class="p-2 bg-dark text-white text-center">
-            <a class= "btn btn-dark" href="<?php echo site_url('Atlantik') ?>"><h1>Atlantik</h1></a>
-            <?php
-            $session = session();
-            if(!is_null($session->get('identifiant'))) 
-            {
-                echo '</center><h4>'.$session->get('identifiant').' - '.$session->get('profil').'</h4><center>';
-            }
-            ?>
+        <a class= "btn btn-dark" href="<?php echo site_url('Atlantik') ?>"><h1>Atlantik</h1></a>
     </div>
     <nav class="navbar navbar-expand-sm bg-light">
         <div class="container-fluid">

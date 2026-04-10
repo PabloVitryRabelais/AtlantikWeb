@@ -37,9 +37,9 @@ echo '</select>
 $enrDate = null;
 foreach ($LesDates as $UneDate)
 {
-    if (explode(' ',$UneDate->DATEHEUREDEPART)[0] != $enrDate) {
-        $enrDate = explode(' ',$UneDate->DATEHEUREDEPART)[0];
-        echo '<option value='.explode(' ',$UneDate->DATEHEUREDEPART)[0].'>'.explode(' ',$UneDate->DATEHEUREDEPART)[0].'</option>';
+    if ($UneDate->DATEDEBUT != $enrDate) {
+        $enrDate = $UneDate->DATEDEBUT;
+        echo '<option value='.$UneDate->DATEDEBUT.'>'.$UneDate->DATEDEBUT.'</option>';
     }
 }
 echo '</select>
@@ -137,7 +137,8 @@ if (!isset($TitrePorts) || count($TitrePorts) === 0)
     {
         echo '<th>'.$lettre[$i].' - '.$libelle[$i].'</th>';
     }
-    echo '</tr>
+    echo '<th>Reserver</th>
+    </tr>
     </thead>
     <tbody>';
 
@@ -156,7 +157,8 @@ if (!isset($TitrePorts) || count($TitrePorts) === 0)
                 echo '<td>'.$capacite[$noTraversee[$i]."".$lettre[$j]].'</td>';
             }
         }
-        echo '</tr>';
+        echo '<td>'.anchor('reservertraversee/'.$noTraversee[$i],'reserver','class = "btn btn-success"').'</td>
+        </tr>';
     }
     echo '</tbody>
     </table>';

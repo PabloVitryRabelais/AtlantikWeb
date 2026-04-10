@@ -18,3 +18,4 @@ $routes->match(['get', 'post'],'liaisonsparsecteur/(:num)', 'Visiteur::LiaisonSe
 
 $routes->match(['get', 'post'],'visutraversees', 'Visiteur::VisualiserTraversees');
 $routes->match(['get', 'post'],'visutraversees/(:num)', 'Visiteur::VisualiserTraversees/$1');
+$routes->match(['get', 'post'],'reservertraversee/(:num)', 'Visiteur::ReserverTraversee/$1', ["filter" => "filtreclient"]);
