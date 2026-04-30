@@ -6,7 +6,18 @@ echo "<br><h5> Traversée n°".$LaTraversee->NOTRAVERSEE." le ".explode(' ',$LaT
 foreach ($PortsLiaison as $Ports) {
     echo "<br>Liaison entre ".$Ports->portDepart." et ".$Ports->portArrivee;
 }
-echo "<br><br> Mr ".$session->get('nom')." ".$session->get('prenom')."<br>Veuillez saisir les information relatives a la reservation : </h5>";
+if(session()->get('profil')=='Client') 
+{
+    echo "<br><br> Mr ".$session->get('nom')." ".$session->get('prenom');
+} else {
+    echo "<br><br>! Il faut se connecter pour valider !";
+}
+echo '<br>Veuillez saisir les information relatives a la reservation : </h5>';
+
+if ($TitrePage === "Saisie valeure incorrecte")
+{
+    echo '<h6 class="text-danger"> Veuillez saisir des valeures correctes </h6>';
+}
 
 $sumLettre = 0;
 $enrLettre = null;
@@ -25,6 +36,9 @@ foreach ($Categories as $UneCategorie)
     $countType[$enrLettre] += 1;
     $typeLibelle[$enrLettre."".$UneCategorie->type] = $UneCategorie->typeLibelle;
 }
+$session->set('lettre', $lettre);
+$session->set('countType', $countType);
+$session->set('sumLettre', $sumLettre);
 
 foreach ($PlacesMax as $ligne)
 {
@@ -45,16 +59,29 @@ foreach ($PlacesReservee as $ligne)
     $enrLettre = $ligne->lettreCategorie;
 }
 
+foreach ($Tarif as $ligne)
+{
+    if (!isset($tarif[$ligne->LETTRECATEGORIE."".$ligne->NOTYPE]))
+    {
+        $tarif[$ligne->LETTRECATEGORIE."".$ligne->NOTYPE] = $ligne->TARIF;
+    }
+}
+
+$session->set('tarif', $tarif);
+
+echo form_open('reservertraversee/1');
+echo csrf_field();
+
 echo '<div class="container-fluid">
 <div class="col-sm-4">
 </div>
 <div class="col-sm-4">
 <br>
-<table class="table table-bordered">';
+<table class="table table-bordered table-striped" name=>';
 
 for ($i=1; $i<=$sumLettre; $i++)
 {
-    if (isset($reservePlaces[$lettre[$i]]) && ($maxPlaces[$lettre[$i]] - $reservePlaces[$lettre[$i]]) <= 0)
+    if ($maxPlaces[$lettre[$i]] <= 0 || isset($reservePlaces[$lettre[$i]]) && ($maxPlaces[$lettre[$i]] - $reservePlaces[$lettre[$i]]) <= 0)
     {
        echo '<tr> Aucunes places disponibles pour '.$lettreLibelle[$i].'</tr>'; 
     } else {
@@ -62,10 +89,21 @@ for ($i=1; $i<=$sumLettre; $i++)
         {
             echo '<tr>
             <td>'.$typeLibelle[$lettre[$i]."".$j].'</td>
-            </tr>';
+            <td>'.$tarif[$lettre[$i]."".$j].'€</td>
+            <td>';
+            echo form_input('txt'.$lettre[$i].''.$j, set_value('txt'.$lettre[$i].''.$j), 'type="text" placeholder="quantité" size="6"');
+            echo'</td></tr>';
         }
     }
 }
 
-echo '</div>
-</table>';
+echo '</table>';
+echo '<center>';
+if(session()->get('profil')=='Client')
+{
+    echo form_submit('btnValider','Valider / Acheter','class = "btn btn-primary btn-lg"');
+} else {
+    echo form_submit('btnValider','Valider / Acheter','class = "btn btn-primary btn-lg disabled"');
+}
+echo '</center>
+</div>';

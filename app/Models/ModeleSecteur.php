@@ -21,7 +21,7 @@ class ModeleSecteur extends Model
 
     public function getAllLiaisonsParSecteur($nosecteur)
     {
-        $condition = ['sec.nosecteur >' => $nosecteur];
+        $condition = ['sec.nosecteur =' => $nosecteur];
 
         return $this->join('liaison li', 'sec.nosecteur = li.nosecteur', 'inner')
         ->join('port port_depart', 'li.noport_depart = port_depart.noport',  'inner')

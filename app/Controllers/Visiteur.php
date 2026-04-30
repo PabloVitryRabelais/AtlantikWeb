@@ -8,6 +8,10 @@ use App\Models\ModeleLiaison;
 use App\Models\ModeleAdministrateur;
 use App\Models\ModeleCategorie;
 use App\Models\ModeleTarifer;
+use App\Models\ModeleReservation;
+use App\Models\ModeleEnregistrer;
+
+
 helper(['assets']);
 
 class Visiteur extends BaseController
@@ -102,6 +106,7 @@ class Visiteur extends BaseController
         $utilisateurRetourne = $modClient->where($condition)->first();
 
         if ($utilisateurRetourne != null) {
+            $session->set('noclient', $utilisateurRetourne->NOCLIENT);
             $session->set('identifiant', $utilisateurRetourne->MEL);
             $session->set('profil', 'Client');
             $session->set('adresse', $utilisateurRetourne->ADRESSE);
@@ -223,52 +228,89 @@ class Visiteur extends BaseController
         $data['PlacesReservee'] = $modTraversee->where('trv.notraversee =', $noTraversee)->getAllPlacesReservee($data['LaTraversee']->NOLIAISON, explode(' ',$data['LaTraversee']->DATEHEUREDEPART)[0]);
         $data['Categories'] = $modCategorie->getAllCategorieType();
         $session = session();
-        $data['Tarif'] = $modTarif->where('noperiode =' => $modPeriode->where('datedebut =') => $session->get('cmbPeriode'))->findAll(), 'noliaison =' => $session->get('cmbLiaisons'))->findAll();
-        var_dump($data['Tarif']);
-        die();
+        $data['Tarif'] = $modTarif->where('noperiode =', $modPeriode->where('datedebut =', $session->get('cmbPeriode'))->first()->NOPERIODE)->where(' noliaison =', $session->get('cmbLiaisons'))->findAll();
         if (!$this->request->is('post')) 
         {
-            return view('Templates/Header')
-            .view('Client/vue_ReserverTraversee', $data)
-            .view('Templates/Footer');
-        }
-
-        $reglesValidation = [
-            'txtNom' => 'required|alpha|max_length[30]',
-            'txtPrenom' => 'required|alpha|max_length[30]',
-            'txtAdresse' => 'required|string|max_length[30]',
-            'txtCodePostal' => 'required|numeric|max_length[8]',
-            'txtVille' => 'required|string|max_length[30]',
-            'txtTelFixe' => 'permit_empty|regex_match[^0[67]\.\d{2}(\.\d{2}){3}$]',
-            'txtTelMobile' => 'permit_empty|regex_match[^0[67]\.\d{2}(\.\d{2}){3}$]',
-            'txtMel' => 'required|max_length[254]|valid_email',
-            'txtMDP' => 'required|string|max_length[30]',
-            'txtConfMDP' => 'required|string|matches[txtMDP]',
-        ];
-
-        if (!$this->validate($reglesValidation)) {
-            $data['TitrePage'] = "Saisie valeure incorrecte";
-            helper('form');
             return view('Templates/Header')
             .view('Visiteur/vue_ReserverTraversee', $data)
             .view('Templates/Footer');
         }
-        $donneesAInserer = array(
-            'nom' => $this->request->getPost('txtNom'),
-            'prenom' => $this->request->getPost('txtPrenom'),
-            'adresse' => $this->request->getPost('txtAdresse'),
-            'codepostal' => $this->request->getPost('txtCodePostal'),
-            'ville' => $this->request->getPost('txtVille'),
-            'telephonefixe' => $this->request->getPost('txtTelFixe'),
-            'telephonemobile' => $this->request->getPost('txtTelMobile'),
-            'mel' => $this->request->getPost('txtMel'),
-            'motdepasse' => $this->request->getPost('txtMDP'),
-        );
 
-        $modClient = new ModeleClient(); 
-        $data['compteAjoute'] = $modClient->insert($donneesAInserer, true);
-        return view('Templates/Header')
-            .view('Visiteur/vue_RapportAjouterCompte', $data)
+        $tariftotal = 0;
+        for ($i=1; $i<=$session->get('sumLettre'); $i++) 
+        {
+            for ($j=1; $j<=$session->get('countType')[$session->get('lettre')[$i]]; $j++)
+            {
+                $reglesValidation = [
+                    'txt'.$session->get('lettre')[$i].''.$j => "permit_empty|numeric|max_length[4]"
+                ];
+
+                if ($this->request->getPost('txt'.$session->get('lettre')[$i].''.$j) != null)
+                {
+                    $tariftotal += (int)$this->request->getPost('txt'.$session->get('lettre')[$i].''.$j)*$session->get('tarif')[$session->get('lettre')[$i]."".$j];
+                    $ajouter[$session->get('lettre')[$i]."".$j] = $this->request->getPost('txt'.$session->get('lettre')[$i].''.$j);
+                }
+
+                if (!$this->validate($reglesValidation)  ) {
+                    $data['TitrePage'] = "Saisie valeure incorrecte";
+                    helper('form');
+                    return view('Templates/Header')
+                    .view('Visiteur/vue_ReserverTraversee', $data)
+                    .view('Templates/Footer');
+                }
+            }
+        }
+
+        if ($tariftotal > 0)
+        {
+            date_default_timezone_set('Europe/Paris');
+
+            $donneesAInserer = array(
+                'notraversee' => $data['LaTraversee']->NOTRAVERSEE,
+                'noclient' => $session->get('noclient'),
+                'dateheure' => date('Y-m-d H:i:s'),
+                'montanttotal' => $tariftotal,
+                'paye' => 1,
+                'modereglement' => 'carte bancaire',
+            );
+            
+            $modReservation = new ModeleReservation();
+            $data['noReservation'] = $modReservation->insert($donneesAInserer, true);
+
+
+            for ($i=1; $i<=$session->get('sumLettre'); $i++) 
+            {
+                for ($j=1; $j<=$session->get('countType')[$session->get('lettre')[$i]]; $j++)
+                {
+                    if (isset($ajouter[$session->get('lettre')[$i]."".$j])) 
+                    {
+                       $donneesTest = array(
+                            'NORESERVATION' => $data['noReservation'],
+                            'LETTRECATEGORIE' => $session->get('lettre')[$i],
+                            'NOTYPE' => $j,
+                            'QUANTITERESERVEE' => (int)$ajouter[$session->get('lettre')[$i]."".$j],
+                            'QUANTITEEMBARQUEE' => 0,
+                        );
+
+                        $modEnregistrer = new ModeleEnregistrer();
+                        $data['enregistrer'] = $modEnregistrer->insert($donneesTest, false);
+                    }
+                }
+            }
+        }
+
+        if (isset($data['enregistrer'])) 
+        {
+            $data['reservations'] = $modEnregistrer->where('NORESERVATION =', $data['noReservation'])->findAll();
+            return view('Templates/Header')
+            .view('Visiteur/vue_CompteRenduReservation', $data)
             .view('Templates/Footer');
+        } else {
+            $data['TitrePage'] = 'Reservation échouée';
+            return view('Templates/Header')
+            .view('Visiteur/vue_ReserverTraversee', $data)
+            .view('Templates/Footer');
+        }
     }
 }
+

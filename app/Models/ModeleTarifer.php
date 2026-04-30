@@ -9,12 +9,4 @@ class ModeleTarifer extends Model
     protected $useAutoIncrement = false;
     protected $returnType = 'object'; 
     protected $allowedFields = ['noperiode, lettrecategorie, notype, noliaison, tarif'];
-
-    public function getAllTarifPeriode($datedebut)
-    {
-        $this->join('periode','tarifer.noperiode = periode.noperiode','inner')
-        ->where('periode.datedebut =', $datedebut)
-        ->select('lettrecategorie, notype, noliaison, tarif')
-        ->get()->getResult();
-    }
 }
